@@ -1,14 +1,24 @@
+import 'package:ecommerce_app/common/constants.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/response/product_response_model.dart';
 import 'package:flutter/material.dart';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key});
+  final ProductResponseModel product;
+  const ProductCard({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/product');
+         Navigator.pushNamed(
+          context,
+          '/product',
+          arguments: product,
+        );
       },
       child: Container(
         width: 215,
@@ -23,8 +33,8 @@ class ProductCard extends StatelessWidget {
             const SizedBox(
               height: 30.0,
             ),
-            Image.asset(
-              'assets/img_shoes.png',
+            Image.network(
+              product.galleries[0].url,
               width: 215,
               height: 150,
               fit: BoxFit.cover,
@@ -37,7 +47,7 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hiking',
+                    product.category.name,
                     style: secondaryTextStyle.copyWith(
                       fontSize: 12,
                     ),
@@ -46,18 +56,19 @@ class ProductCard extends StatelessWidget {
                     height: 6.0,
                   ),
                   Text(
-                    'COURT VISION 2.0',
+                    product.name,
                     style: blackTextStyle.copyWith(
                       fontSize: 18,
                       fontWeight: semiBold,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(
                     height: 6.0,
                   ),
                   Text(
-                    '\$58,67',
+                   formatCurrency(product.priceToRupiah),
                     style: priceTextStyle.copyWith(
                       fontSize: 14,
                       fontWeight: medium,

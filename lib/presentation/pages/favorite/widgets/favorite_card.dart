@@ -1,8 +1,15 @@
+import 'package:ecommerce_app/bloc/favorite/favorite_bloc.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/response/product_response_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FavoriteCard extends StatelessWidget {
-  const FavoriteCard({super.key});
+  final ProductResponseModel product;
+  const FavoriteCard({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +27,8 @@ class FavoriteCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/img_shoes.png',
+            child: Image.network(
+              product.galleries[0].url,
               width: 60,
             ),
           ),
@@ -33,21 +40,28 @@ class FavoriteCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Terrex Urban Low',
+                  product.name,
                   style: primaryTextStyle.copyWith(
                     fontWeight: semiBold,
                   ),
                 ),
                 Text(
-                  '\$143,98',
+                  '\$${product.price}',
                   style: priceTextStyle,
                 ),
               ],
             ),
           ),
-          Image.asset(
-            'assets/btn_favorite_active.png',
-            width: 34,
+          InkWell(
+            onTap: () {
+              context
+                  .read<FavoriteBloc>()
+                  .add(RemoveFavoriteEvent(product: product));
+            },
+            child: Image.asset(
+              'assets/btn_favorite_active.png',
+              width: 34,
+            ),
           ),
         ],
       ),

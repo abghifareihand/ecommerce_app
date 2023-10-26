@@ -1,8 +1,16 @@
+import 'package:ecommerce_app/bloc/cart/cart_bloc.dart';
+import 'package:ecommerce_app/common/constants.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/response/cart_response_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartCard extends StatelessWidget {
-  const CartCard({super.key});
+  final CartResponseModel cart;
+  const CartCard({
+    super.key,
+    required this.cart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +30,8 @@ class CartCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/img_shoes.png',
+                child: Image.network(
+                  cart.product.galleries[0].url,
                   width: 60,
                 ),
               ),
@@ -33,14 +41,14 @@ class CartCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Terrex Urban Low',
+                      cart.product.name,
                       style: primaryTextStyle.copyWith(
                         fontWeight: semiBold,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '\$143,98',
+                      formatCurrency(cart.product.priceToRupiah),
                       style: priceTextStyle,
                     ),
                   ],
@@ -48,15 +56,22 @@ class CartCard extends StatelessWidget {
               ),
               Column(
                 children: [
-                  Image.asset(
-                    'assets/btn_add.png',
-                    width: 16,
+                  InkWell(
+                    onTap: () {
+                      context
+                          .read<CartBloc>()
+                          .add(AddQuantityEvent(cartId: cart.id));
+                    },
+                    child: Image.asset(
+                      'assets/btn_add.png',
+                      width: 16,
+                    ),
                   ),
                   const SizedBox(
                     height: 2.0,
                   ),
                   Text(
-                    '2',
+                    cart.quantity.toString(),
                     style: primaryTextStyle.copyWith(
                       fontWeight: medium,
                     ),
@@ -64,9 +79,16 @@ class CartCard extends StatelessWidget {
                   const SizedBox(
                     height: 2.0,
                   ),
-                  Image.asset(
-                    'assets/btn_min.png',
-                    width: 16,
+                  InkWell(
+                    onTap: () {
+                      context
+                          .read<CartBloc>()
+                          .add(ReduceQuantityEvent(cartId: cart.id));
+                    },
+                    child: Image.asset(
+                      'assets/btn_min.png',
+                      width: 16,
+                    ),
                   ),
                 ],
               ),
@@ -76,7 +98,9 @@ class CartCard extends StatelessWidget {
             height: 12.0,
           ),
           InkWell(
-            onTap: () {},
+            onTap: () {
+              context.read<CartBloc>().add(RemoveFromCartEvent(cart: cart));
+            },
             child: Row(
               children: [
                 Image.asset(

@@ -1,14 +1,24 @@
+import 'package:ecommerce_app/common/constants.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/response/product_response_model.dart';
 import 'package:flutter/material.dart';
 
 class ProductTile extends StatelessWidget {
-  const ProductTile({super.key});
+  final ProductResponseModel product;
+  const ProductTile({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/product');
+        Navigator.pushNamed(
+          context,
+          '/product',
+          arguments: product,
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(
@@ -20,8 +30,8 @@ class ProductTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'assets/img_shoes.png',
+              child: Image.network(
+                product.galleries[0].url,
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
@@ -35,7 +45,7 @@ class ProductTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Football',
+                    product.category.name,
                     style: secondaryTextStyle.copyWith(
                       fontSize: 12,
                     ),
@@ -44,7 +54,7 @@ class ProductTile extends StatelessWidget {
                     height: 6.0,
                   ),
                   Text(
-                    'Predator 20.3 FirmGround',
+                    product.name,
                     style: primaryTextStyle.copyWith(
                       fontSize: 16,
                       fontWeight: semiBold,
@@ -54,7 +64,7 @@ class ProductTile extends StatelessWidget {
                     height: 6.0,
                   ),
                   Text(
-                    '\$68,47',
+                    formatCurrency(product.priceToRupiah),
                     style: priceTextStyle.copyWith(
                       fontWeight: medium,
                     ),

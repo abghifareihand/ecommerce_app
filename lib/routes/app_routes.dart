@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/data/models/response/product_response_model.dart';
 import 'package:ecommerce_app/presentation/pages/auth/login_page.dart';
 import 'package:ecommerce_app/presentation/pages/auth/register_page.dart';
 import 'package:ecommerce_app/presentation/pages/cart/cart_page.dart';
@@ -19,7 +20,7 @@ class AppRoutes {
       '/navbar': (context) => const BottomNavbar(),
       '/detail-chat': (context) => const DetailChatPage(),
       '/edit-profile': (context) => const EditProfilePage(),
-      '/product': (context) => const ProductPage(),
+      '/product': (context) => ProductPage(product: ModalRoute.of(context)!.settings.arguments as ProductResponseModel),
       '/cart': (context) => const CartPage(),
       '/checkout': (context) => const CheckoutPage(),
       '/checkout-success': (context) => const CheckoutSuccessPage(),

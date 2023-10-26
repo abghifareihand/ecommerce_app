@@ -1,6 +1,11 @@
+import 'package:ecommerce_app/bloc/cart/cart_bloc.dart';
+import 'package:ecommerce_app/bloc/checkout/checkout_bloc.dart';
+import 'package:ecommerce_app/common/constants.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/request/checkout_request_model.dart';
 import 'package:ecommerce_app/presentation/pages/checkout/widgets/checkout_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
@@ -14,24 +19,38 @@ class CheckoutPage extends StatelessWidget {
         ),
         children: [
           /// List items
-          Container(
-            margin: const EdgeInsets.only(
-              top: 30,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'List Items',
-                  style: primaryTextStyle.copyWith(
-                    fontSize: 16,
-                    fontWeight: semiBold,
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state is CartSuccess) {
+                return Container(
+                  margin: const EdgeInsets.only(
+                    top: 30,
                   ),
-                ),
-                const CheckoutCard(),
-                const CheckoutCard(),
-              ],
-            ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'List Items',
+                        style: primaryTextStyle.copyWith(
+                          fontSize: 16,
+                          fontWeight: semiBold,
+                        ),
+                      ),
+                      Column(
+                        children: state.carts
+                            .map(
+                              (cart) => CheckoutCard(
+                                cart: cart,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Container();
+            },
           ),
 
           /// Address Details
@@ -105,7 +124,7 @@ class CheckoutPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Marsemoon',
+                          'Jakarta',
                           style: primaryTextStyle.copyWith(
                             fontWeight: medium,
                           ),
@@ -119,114 +138,125 @@ class CheckoutPage extends StatelessWidget {
           ),
 
           /// Payment Summary
-          Container(
-            margin: const EdgeInsets.only(
-              top: 30,
-            ),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: backgroundColor4,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Payment Summary',
-                  style: primaryTextStyle.copyWith(
-                    fontSize: 16,
-                    fontWeight: semiBold,
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state is CartSuccess) {
+                final total = state.carts
+                    .fold(0, (sum, product) => sum + product.getTotalPrice());
+                final quantity = state.carts
+                    .fold(0, (sum, product) => sum + product.quantity);
+                return Container(
+                  margin: const EdgeInsets.only(
+                    top: 30,
                   ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Product Quantity',
-                      style: secondaryTextStyle.copyWith(
-                        fontSize: 12,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: backgroundColor4,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payment Summary',
+                        style: primaryTextStyle.copyWith(
+                          fontSize: 16,
+                          fontWeight: semiBold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '2 Items',
-                      style: primaryTextStyle.copyWith(
-                        fontWeight: medium,
+                      const SizedBox(
+                        height: 12,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 12.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Product Price',
-                      style: secondaryTextStyle.copyWith(
-                        fontSize: 12,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Product Quantity',
+                            style: secondaryTextStyle.copyWith(
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '$quantity Items',
+                            style: primaryTextStyle.copyWith(
+                              fontWeight: medium,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      '\$287,96',
-                      style: primaryTextStyle.copyWith(
-                        fontWeight: medium,
+                      const SizedBox(
+                        height: 12.0,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 12.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Shipping',
-                      style: secondaryTextStyle.copyWith(
-                        fontSize: 12,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Product Price',
+                            style: secondaryTextStyle.copyWith(
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            formatCurrency(total),
+                            style: primaryTextStyle.copyWith(
+                              fontWeight: medium,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      'Free',
-                      style: primaryTextStyle.copyWith(
-                        fontWeight: medium,
+                      const SizedBox(
+                        height: 12.0,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 12.0,
-                ),
-                const Divider(
-                  thickness: 1,
-                  color: Color(0xff2E3141),
-                ),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total',
-                      style: priceTextStyle.copyWith(
-                        fontWeight: semiBold,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Shipping',
+                            style: secondaryTextStyle.copyWith(
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            'Free',
+                            style: primaryTextStyle.copyWith(
+                              fontWeight: medium,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      '\$287,96',
-                      style: priceTextStyle.copyWith(
-                        fontWeight: semiBold,
+                      const SizedBox(
+                        height: 12.0,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                      const Divider(
+                        thickness: 1,
+                        color: Color(0xff2E3141),
+                      ),
+                      const SizedBox(
+                        height: 10.0,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total',
+                            style: priceTextStyle.copyWith(
+                              fontWeight: semiBold,
+                            ),
+                          ),
+                          Text(
+                            formatCurrency(total),
+                            style: priceTextStyle.copyWith(
+                              fontWeight: semiBold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Container();
+            },
           ),
 
           /// Checkout Button
@@ -237,33 +267,58 @@ class CheckoutPage extends StatelessWidget {
             thickness: 1,
             color: Color(0xff2E3141),
           ),
-          Container(
-            height: 50,
-            margin: const EdgeInsets.symmetric(
-              vertical: 30,
-            ),
-            child: TextButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/checkout-success', (route) => false);
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Checkout Now',
-                style: primaryTextStyle.copyWith(
-                  fontSize: 16,
-                  fontWeight: semiBold,
-                ),
-              ),
-            ),
+
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state is CartSuccess) {
+                final totalQuantity = state.carts
+                    .fold(0, (sum, product) => sum + product.quantity);
+                final totalPrice = state.carts
+                    .fold(0, (sum, product) => sum + product.getTotalPrice());
+                return Container(
+                  height: 50,
+                  margin: const EdgeInsets.symmetric(vertical: 30),
+                  child: TextButton(
+                    onPressed: () {
+                      final requestCheckout = CheckoutRequestModel(
+                        address: 'Jakarta',
+                        items: state.carts
+                            .map(
+                              (cart) => Item(
+                                id: cart.product.id,
+                                quantity: cart.quantity,
+                              ),
+                            )
+                            .toList(),
+                        status: 'PENDING',
+                        totalPrice: totalPrice,
+                        shippingPrice: 0,
+                      );
+                      context
+                          .read<CheckoutBloc>()
+                          .add(PayCheckoutEvent(checkout: requestCheckout));
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Checkout Now',
+                      style: primaryTextStyle.copyWith(
+                        fontSize: 16,
+                        fontWeight: semiBold,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Container();
+            },
           ),
         ],
       );

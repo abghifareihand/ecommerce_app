@@ -1,8 +1,23 @@
+import 'package:ecommerce_app/bloc/auth/auth_bloc.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/datasources/local/auth_local_datasource.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    context.read<AuthBloc>().add(AuthGetUserEvent());
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,45 +37,58 @@ class ProfilePage extends StatelessWidget {
       flexibleSpace: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(30),
-          child: Row(
-            children: [
-              ClipOval(
-                child: Image.asset(
-                  'assets/img_profile.png',
-                  width: 64,
-                ),
-              ),
-              const SizedBox(
-                width: 16.0,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthUserSuccess) {
+                return Row(
                   children: [
-                    Text(
-                      'Hello, Alex',
-                      style: primaryTextStyle.copyWith(
-                        fontSize: 24,
-                        fontWeight: semiBold,
+                    ClipOval(
+                      child: Image.asset(
+                        'assets/img_profile.png',
+                        width: 64,
                       ),
                     ),
-                    Text(
-                      '@alexkeinn',
-                      style: subtitleTextStyle.copyWith(
-                        fontSize: 16,
+                    const SizedBox(
+                      width: 16.0,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.user.name,
+                            style: primaryTextStyle.copyWith(
+                              fontSize: 24,
+                              fontWeight: semiBold,
+                            ),
+                          ),
+                          Text(
+                            state.user.username,
+                            style: subtitleTextStyle.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        await AuthLocalDatasource().removeToken();
+                        if (!mounted) return;
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, '/login', (route) => false);
+                      },
+                      child: Image.asset(
+                        'assets/btn_exit.png',
+                        width: 20,
                       ),
                     ),
                   ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: Image.asset(
-                  'assets/btn_exit.png',
-                  width: 20,
-                ),
-              ),
-            ],
+                );
+              }
+
+              return const SizedBox();
+            },
           ),
         ),
       ),

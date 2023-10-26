@@ -1,10 +1,29 @@
+import 'package:ecommerce_app/bloc/auth/auth_bloc.dart';
+import 'package:ecommerce_app/bloc/category/category_bloc.dart';
+import 'package:ecommerce_app/bloc/products/products_bloc.dart';
 import 'package:ecommerce_app/common/theme.dart';
 import 'package:ecommerce_app/presentation/pages/home/widgets/product_card.dart';
 import 'package:ecommerce_app/presentation/pages/home/widgets/product_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    context.read<AuthBloc>().add(AuthGetUserEvent());
+    context.read<ProductsBloc>().add(ProductsGetEvent());
+    context.read<CategoryBloc>().add(CategoryGetEvent(categoryId: index));
+    super.initState();
+  }
+
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -21,46 +40,96 @@ class HomePage extends StatelessWidget {
   }
 
   Widget header() {
-    return Container(
-      margin: const EdgeInsets.only(
-        top: 30,
-        left: 30,
-        right: 30,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthUserSuccess) {
+          final user = state.user;
+          return Container(
+            margin: const EdgeInsets.only(
+              top: 30,
+              left: 30,
+              right: 30,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Hallo, Alex',
-                  style: primaryTextStyle.copyWith(
-                    fontSize: 24,
-                    fontWeight: semiBold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hallo, ${user.name}',
+                        style: primaryTextStyle.copyWith(
+                          fontSize: 24,
+                          fontWeight: semiBold,
+                        ),
+                      ),
+                      Text(
+                        '@${user.username}',
+                        style: subtitleTextStyle.copyWith(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  '@alexgober',
-                  style: subtitleTextStyle.copyWith(
-                    fontSize: 16,
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: AssetImage(
+                        'assets/img_profile.png',
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          Container(
-            width: 54,
-            height: 54,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage('assets/img_profile.png'),
+          );
+        }
+        return Container();
+      },
+    );
+  }
+
+  Widget categoryButton(String text, int indexCategory) {
+    return GestureDetector(
+      onTap: () {
+        index = indexCategory;
+        context.read<CategoryBloc>().add(CategoryGetEvent(categoryId: index));
+        setState(() {});
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        decoration: indexCategory == index
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: primaryColor,
+              )
+            : BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: subtitleColor),
+                color: transparentColor,
               ),
-            ),
-          ),
-        ],
+        child: Text(
+          text,
+          style: indexCategory == index
+              ? primaryTextStyle.copyWith(
+                  fontWeight: medium,
+                  fontSize: 13,
+                )
+              : subtitleTextStyle.copyWith(
+                  fontWeight: medium,
+                  fontSize: 13,
+                ),
+        ),
       ),
     );
   }
@@ -72,87 +141,12 @@ class HomePage extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            const SizedBox(
-              width: 30.0,
-            ),
-            // isi di dalam card
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'All Shoes',
-                style: primaryTextStyle.copyWith(
-                  fontWeight: medium,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: transparentColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: subtitleColor,
-                ),
-              ),
-              child: Text(
-                'Running',
-                style: subtitleTextStyle.copyWith(
-                  fontWeight: light,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: transparentColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: subtitleColor,
-                ),
-              ),
-              child: Text(
-                'Training',
-                style: subtitleTextStyle.copyWith(
-                  fontWeight: light,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: transparentColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: subtitleColor,
-                ),
-              ),
-              child: Text(
-                'Basketball',
-                style: subtitleTextStyle.copyWith(
-                  fontWeight: light,
-                ),
-              ),
-            ),
+            const SizedBox(width: 30),
+            categoryButton('All Shoes', 0),
+            categoryButton('Running', 5),
+            categoryButton('Training', 4),
+            categoryButton('Basketball', 3),
+            categoryButton('Hiking', 2),
           ],
         ),
       ),
@@ -177,27 +171,39 @@ class HomePage extends StatelessWidget {
   }
 
   Widget popularProducts() {
-    return Container(
-      margin: const EdgeInsets.only(
-        top: 14,
-      ),
-      child: const SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            SizedBox(
-              width: 30.0,
+    return BlocBuilder<CategoryBloc, CategoryState>(
+      builder: (context, state) {
+        if (state is CategorySuccess) {
+          return Container(
+            margin: const EdgeInsets.only(
+              top: 14,
             ),
-            Row(
-              children: [
-                ProductCard(),
-                ProductCard(),
-                ProductCard(),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 30,
+                  ),
+                  Row(
+                      children: state.products
+                          .map(
+                            (product) => ProductCard(
+                              product: product,
+                            ),
+                          )
+                          .toList()),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
+          );
+        }
+        return Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+          ),
+        );
+      },
     );
   }
 
@@ -219,15 +225,24 @@ class HomePage extends StatelessWidget {
   }
 
   Widget newArrivals() {
-    return Container(
-      margin: const EdgeInsets.only(top: 14),
-      child: Column(
-        children: [
-          ProductTile(),
-          ProductTile(),
-          ProductTile(),
-        ],
-      ),
+    return BlocBuilder<ProductsBloc, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsSuccess) {
+          return Container(
+            margin: const EdgeInsets.only(top: 14),
+            child: Column(
+              children: state.products
+                  .map(
+                    (product) => ProductTile(product: product),
+                  )
+                  .toList(),
+            ),
+          );
+        }
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
     );
   }
 }

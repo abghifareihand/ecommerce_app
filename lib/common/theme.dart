@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 Color primaryColor = const Color(0xFF6C5ECF);
 Color secondaryColor = const Color(0xFF38ABBE);
 Color alertColor = const Color(0xFFED6363);
+Color successColor = const Color(0xFF5AA861);
 Color priceColor = const Color(0xFF2C96F1);
 Color backgroundColor1 = const Color(0xFF1F1D2B);
 Color backgroundColor2 = const Color(0xFF2B2937);
@@ -31,3 +33,12 @@ FontWeight regular = FontWeight.w400;
 FontWeight medium = FontWeight.w500;
 FontWeight semiBold = FontWeight.w600;
 FontWeight bold = FontWeight.w700;
+
+void showCustomSnackbar(BuildContext context, String message, Color color) {
+  Flushbar(
+    message: message,
+    flushbarPosition: FlushbarPosition.TOP,
+    backgroundColor: color,
+    duration: const Duration(seconds: 2),
+  ).show(context);
+}

@@ -1,9 +1,19 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:ecommerce_app/bloc/cart/cart_bloc.dart';
+import 'package:ecommerce_app/bloc/favorite/favorite_bloc.dart';
+import 'package:ecommerce_app/common/constants.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/response/cart_response_model.dart';
+import 'package:ecommerce_app/data/models/response/product_response_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductPage extends StatefulWidget {
-  const ProductPage({super.key});
+  final ProductResponseModel product;
+  const ProductPage({
+    super.key,
+    required this.product,
+  });
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -32,6 +42,85 @@ class _ProductPageState extends State<ProductPage> {
   ];
 
   int currentIndex = 0;
+
+  Future<void> showSuccessDialog() async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) => SizedBox(
+        width: MediaQuery.of(context).size.width - (2 * 30),
+        child: AlertDialog(
+          backgroundColor: backgroundColor3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Icon(
+                      Icons.close,
+                      color: primaryTextColor,
+                    ),
+                  ),
+                ),
+                Image.asset(
+                  'assets/ic_success.png',
+                  width: 100,
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Text(
+                  'Hurray :)',
+                  style: primaryTextStyle.copyWith(
+                    fontSize: 18,
+                    fontWeight: semiBold,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Text(
+                  'Item added successfully',
+                  style: secondaryTextStyle,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  width: 154,
+                  height: 44,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cart');
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'View My Cart',
+                      style: primaryTextStyle.copyWith(
+                        fontSize: 16,
+                        fontWeight: medium,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +178,10 @@ class _ProductPageState extends State<ProductPage> {
             ),
           ),
           CarouselSlider(
-            items: images
+            items: widget.product.galleries
                 .map(
-                  (image) => Image.asset(
-                    image,
+                  (image) => Image.network(
+                    image.url,
                     width: MediaQuery.of(context).size.width,
                     height: 310,
                     fit: BoxFit.cover,
@@ -113,7 +202,7 @@ class _ProductPageState extends State<ProductPage> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: images.map((e) {
+            children: widget.product.galleries.map((e) {
               index++;
               return indicator(index);
             }).toList(),
@@ -149,14 +238,14 @@ class _ProductPageState extends State<ProductPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'TERREX URBAN LOW',
+                          widget.product.name,
                           style: primaryTextStyle.copyWith(
                             fontSize: 18,
                             fontWeight: semiBold,
                           ),
                         ),
                         Text(
-                          'Hiking',
+                          widget.product.category.name,
                           style: secondaryTextStyle.copyWith(
                             fontSize: 12,
                           ),
@@ -164,9 +253,43 @@ class _ProductPageState extends State<ProductPage> {
                       ],
                     ),
                   ),
-                  Image.asset(
-                    'assets/btn_favorite.png',
-                    width: 46,
+                  BlocBuilder<FavoriteBloc, FavoriteState>(
+                    builder: (context, state) {
+                      if (state is FavoriteSuccess) {
+                        final isFavorite = state.products
+                            .any((product) => product.id == widget.product.id);
+
+                        return InkWell(
+                          onTap: () {
+                            if (isFavorite) {
+                              // Produk sudah ada dalam favorit, sehingga kita ingin menghapusnya.
+                              context.read<FavoriteBloc>().add(
+                                    RemoveFavoriteEvent(
+                                      product: widget.product,
+                                    ),
+                                  );
+                            } else {
+                              // Produk belum ada dalam favorit, tambahkan ke favorit.
+                              context.read<FavoriteBloc>().add(
+                                    AddFavoriteEvent(
+                                      product: widget.product,
+                                    ),
+                                  );
+                            }
+                          },
+                          child: Image.asset(
+                            isFavorite
+                                ? 'assets/btn_favorite_active.png'
+                                : 'assets/btn_favorite.png',
+                            width: 46,
+                          ),
+                        );
+                      }
+                      return Image.asset(
+                        'assets/btn_favorite.png',
+                        width: 46,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -193,7 +316,7 @@ class _ProductPageState extends State<ProductPage> {
                     style: primaryTextStyle,
                   ),
                   Text(
-                    '\$143,98',
+                    formatCurrency(widget.product.priceToRupiah),
                     style: priceTextStyle.copyWith(
                       fontSize: 16,
                       fontWeight: semiBold,
@@ -224,7 +347,7 @@ class _ProductPageState extends State<ProductPage> {
                     height: 12.0,
                   ),
                   Text(
-                    'Unpaved trails and mixed surfaces are easy when you have the traction and support you need. Casual enough for the daily commute.',
+                    widget.product.description,
                     style: subtitleTextStyle.copyWith(
                       fontWeight: light,
                     ),
@@ -290,26 +413,44 @@ class _ProductPageState extends State<ProductPage> {
                     width: 16.0,
                   ),
                   // mengisi ruang kosong
-                  Expanded(
-                    child: SizedBox(
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  BlocBuilder<CartBloc, CartState>(
+                    builder: (context, state) {
+                      if (state is CartSuccess) {
+                        return Expanded(
+                          child: SizedBox(
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                context.read<CartBloc>().add(
+                                      AddToCartEvent(
+                                        cart: CartResponseModel(
+                                          id: widget.product.id,
+                                          product: widget.product,
+                                          quantity: 1,
+                                        ),
+                                      ),
+                                    );
+                                showSuccessDialog();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Add to Cart',
+                                style: primaryTextStyle.copyWith(
+                                  fontSize: 16,
+                                  fontWeight: semiBold,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          'Add to Cart',
-                          style: primaryTextStyle.copyWith(
-                            fontSize: 16,
-                            fontWeight: semiBold,
-                          ),
-                        ),
-                      ),
-                    ),
+                        );
+                      }
+                      return const SizedBox();
+                    },
                   ),
                 ],
               ),

@@ -1,9 +1,20 @@
+import 'package:ecommerce_app/bloc/auth/auth_bloc.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/datasources/local/auth_local_datasource.dart';
+import 'package:ecommerce_app/data/models/request/login_request_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,6 +98,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _emailController,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
                         hintText: 'Your Email Address',
@@ -141,6 +153,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _passwordController,
                       obscureText: true,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
@@ -160,29 +173,60 @@ class LoginPage extends StatelessWidget {
 
   /// Button Login
   Widget buttonLogin(BuildContext context) {
-    return Container(
-      height: 50,
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 30),
-      child: TextButton(
-        onPressed: () {
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthSuccess) {
+          await AuthLocalDatasource().saveToken(
+            state.authResponseModel.data.accessToken,
+          );
+          print('token: ${state.authResponseModel.data.accessToken}');
+          if (!mounted) return;
           Navigator.pushNamedAndRemoveUntil(
-              context, '/navbar', (route) => false);
-        },
-        style: TextButton.styleFrom(
-          backgroundColor: primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            context,
+            '/navbar',
+            (route) => false,
+          );
+          showCustomSnackbar(context, 'Login Success', secondaryColor);
+        }
+
+        if (state is AuthError) {
+          showCustomSnackbar(context, 'Login Failed', alertColor);
+        }
+      },
+      builder: (context, state) {
+        print(state);
+        return Container(
+          height: 50,
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 30),
+          child: TextButton(
+            onPressed: () {
+              final loginModel = LoginRequestModel(
+                email: _emailController.text,
+                password: _passwordController.text,
+              );
+              context.read<AuthBloc>().add(
+                    AuthLoginEvent(
+                      loginRequestModel: loginModel,
+                    ),
+                  );
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              state is AuthLoading ? 'Loading...' : 'Login',
+              style: primaryTextStyle.copyWith(
+                fontSize: 16,
+                fontWeight: medium,
+              ),
+            ),
           ),
-        ),
-        child: Text(
-          'Login',
-          style: primaryTextStyle.copyWith(
-            fontSize: 16,
-            fontWeight: medium,
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 

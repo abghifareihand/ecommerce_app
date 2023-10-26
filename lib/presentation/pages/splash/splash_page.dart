@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/datasources/local/auth_local_datasource.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatefulWidget {
@@ -13,11 +14,24 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
-    Timer(
-      const Duration(seconds: 3),
-      () => Navigator.pushNamed(context, '/login'),
-    );
     super.initState();
+   
+    // Tambahkan penundaan selama 3 detik sebelum pemeriksaan login.
+    Future.delayed(const Duration(seconds: 3), () {
+      checkUserLoginStatus();
+    });
+  }
+
+  Future<void> checkUserLoginStatus() async {
+    final isLoggedIn = await AuthLocalDatasource().isUserLoggedIn();
+    if (isLoggedIn) {
+      print(isLoggedIn);
+      // Redirect ke halaman utama atau dashboard karena pengguna sudah login.
+      Navigator.pushReplacementNamed(context, '/navbar');
+    } else {
+      // Redirect ke halaman login karena pengguna belum login.
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   @override

@@ -1,9 +1,21 @@
+import 'package:ecommerce_app/bloc/auth/auth_bloc.dart';
 import 'package:ecommerce_app/common/theme.dart';
+import 'package:ecommerce_app/data/models/request/register_request_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +101,7 @@ class RegisterPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _nameController,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
                         hintText: 'Your Full Name',
@@ -143,6 +156,7 @@ class RegisterPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _usernameController,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
                         hintText: 'Your Username',
@@ -197,6 +211,7 @@ class RegisterPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _emailController,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
                         hintText: 'Your Email Address',
@@ -251,6 +266,7 @@ class RegisterPage extends StatelessWidget {
                   ),
                   Expanded(
                     child: TextFormField(
+                      controller: _passwordController,
                       obscureText: true,
                       style: primaryTextStyle,
                       decoration: InputDecoration.collapsed(
@@ -270,26 +286,66 @@ class RegisterPage extends StatelessWidget {
 
   /// Button Register
   Widget buttonRegister() {
-    return Container(
-      height: 50,
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 30),
-      child: TextButton(
-        onPressed: () {},
-        style: TextButton.styleFrom(
-          backgroundColor: primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: priceColor,
+              content: const Text('Register Success'),
+            ),
+          );
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/navbar',
+            (route) => false,
+          );
+        }
+
+        if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: alertColor,
+              content: Text(state.message),
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Container(
+          height: 50,
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 30),
+          child: TextButton(
+            onPressed: () {
+              final registerModel = RegisterRequestModel(
+                name: _nameController.text,
+                username: _usernameController.text,
+                email: _emailController.text,
+                password: _passwordController.text,
+              );
+              context.read<AuthBloc>().add(
+                    AuthRegisterEvent(
+                      registerRequestModel: registerModel,
+                    ),
+                  );
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              state is AuthLoading ? 'Loading...' : 'Register',
+              style: primaryTextStyle.copyWith(
+                fontSize: 16,
+                fontWeight: medium,
+              ),
+            ),
           ),
-        ),
-        child: Text(
-          'Register',
-          style: primaryTextStyle.copyWith(
-            fontSize: 16,
-            fontWeight: medium,
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
